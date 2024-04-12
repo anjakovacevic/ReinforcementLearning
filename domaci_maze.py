@@ -22,7 +22,10 @@ class Node(ABC):
     """
     Abstract base class representing a node in a maze environment.
 
-    This class provides a template for different types of nodes that can exist in a maze. Each node has a position in the maze, represented by x and y coordinates. The class defines several methods that can be used to query the properties of the node, such as its position, whether it's steppable, terminal, or holds a value. The class also includes an abstract method, get_reward, which must be implemented by subclasses to define how rewards are calculated for each type of node.
+    This class provides a template for different types of nodes that can exist in a maze. Each node has a position in 
+    the maze, represented by x and y coordinates. The class defines several methods that can be used to query the properties 
+    of the node, such as its position, whether it's steppable, terminal, or holds a value. The class also includes an abstract method, 
+    get_reward, which must be implemented by subclasses to define how rewards are calculated for each type of node.
 
     Attributes:
         x (int): The x-coordinate of the node in the maze.
@@ -83,7 +86,8 @@ class Node(ABC):
         """
         Checks if the node is a terminal node.
 
-        A terminal node signifies an end condition in the maze. By default, nodes are not terminal. This method can be overridden in subclasses to mark certain nodes as terminal.
+        A terminal node signifies an end condition in the maze. By default, nodes are not terminal. This method can be overridden
+        in subclasses to mark certain nodes as terminal.
 
         Returns:
             bool: True if the node is a terminal node, False otherwise.
@@ -94,7 +98,8 @@ class Node(ABC):
         """
         Checks if the node holds a value.
 
-        This method can be used to determine if a node contributes a value (such as a reward or penalty) in the maze. By default, nodes are considered to have a value. This can be overridden in subclasses.
+        This method can be used to determine if a node contributes a value (such as a reward or penalty) in the maze. 
+        By default, nodes are considered to have a value. This can be overridden in subclasses.
 
         Returns:
             bool: True if the node has a value, False otherwise.

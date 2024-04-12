@@ -397,15 +397,10 @@ def compute_gain(rewards: list[float], gamma: float) -> float:
 def discounted_gains(rewards: list[float], gamma) -> list[float]:
     """
     Calculate the discounted gains (or returns) for each timestep in a sequence of rewards
-    using a discount factor. The discount factor, gamma, is used to weigh rewards received
-    in the future less than rewards received immediately, reflecting the principle that
-    immediate rewards are more valuable than the same rewards received in the future.
+    using a discount factor.
 
-    This function computes the discounted gain for each timestep in the sequence by
-    summing all future rewards from that timestep, each discounted by how far in the
-    future it is received. The gain at each timestep is calculated as:
-
-    G_t = R_t+1 + gamma * R_t+2 + gamma^2 * R_t+3 + ... + gamma^(T-t-1) * R_T
+    The gain at each timestep is calculated as:
+    G_t = R_t+1 + gamma * R_t+2 + gamma^2 * R_t+3 + ... + gamma^(T-t-1) * R_t
 
     where G_t is the gain at time t, R_t is the reward received at time t, gamma is the
     discount factor (0 <= gamma <= 1), and T is the total number of timesteps.
@@ -481,6 +476,7 @@ def play_game(
 
     if player1_starts:
         # Player 1 takes their turn first
+        #print("Player 1 takes their turn first")
         player1_total, player1_log = play_turn(
             policy1, deck, player1_state, report_callback=player1_report_callback
         )
@@ -490,6 +486,7 @@ def play_game(
         )
     else:
         # Player 2 takes their turn first if player1_starts is False
+        #print("Player 2 plays first")
         player2_total, player2_log = play_turn(
             policy2, deck, player2_state, report_callback=player2_report_callback
         )
@@ -550,9 +547,7 @@ def apply_policy_exhaustive(
         epoch_no (int, optional): The number of games to simulate for the evaluation.
                                   Defaults to 5.
         gamma (float, optional): The discount factor used in the game's reward calculation.
-                                 It's not directly used in this function but is passed to
-                                 the game simulation function. Defaults to 1, indicating no
-                                 discounting.
+                                 Defaults to 1, indicating no discounting.
 
     Returns:
         tuple[PolicyTestingResult, PolicyTestingResult]: A tuple containing the testing
@@ -619,14 +614,20 @@ GainsDict = dict[State, tuple[list[float], list[float]]]
 
 def create_gains_dict(experience: Experience) -> GainsDict:
     """
-    Create a dictionary mapping from game states to the gains associated with each possible action in those states, based on the given experiences.
+    Create a dictionary mapping from game states to the gains associated with each possible action in 
+    those states, based on the given experiences.
 
-    Each state in the game is represented by a tuple of three elements: the player's total card value, a boolean indicating whether the player has a usable ace, and the opponent's (or dealer's) visible card value. The gains dictionary maps these states to pairs of lists: one for the gains associated with choosing to HIT, and one for choosing to HOLD.
-
-    The gains for each action are aggregated from the experiences collected during gameplay. An experience is a tuple consisting of a state, an action taken in that state (either HIT or HOLD), and the gain resulting from that action. The gain represents the immediate outcome or reward of taking the action, considering the future states until the end of the game.
+    Each state in the game is represented by a tuple of three elements: 
+    - the player's total card value, 
+    - a boolean indicating whether the player has a usable ace, 
+    - the opponent's (or dealer's) visible card value. 
+    
+    The gains dictionary maps these states to pairs of lists: one for the gains 
+    associated with choosing to HIT, and one for choosing to HOLD.
 
     Interpretation of the Gains Dictionary:
-    - Each key in the dictionary is a state, and the value is a pair of lists: the first list contains gains for HITTING, and the second list for HOLDING.
+    - Each key in the dictionary is a state, and the value is a pair of lists: the first list 
+    contains gains for HITTING, and the second list for HOLDING.
     - A negative gain value indicates that, on average, the action led to a decrease in the player's chance of winning from that state.
     - An empty list for an action means no experiences were recorded for that action in the given state, making its outcome unknown.
 
@@ -654,28 +655,25 @@ def create_gains_dict(experience: Experience) -> GainsDict:
 # Incremental Monte Karlo
 def update_q_value(current: float, target: float, alpha: float) -> float:
     """
-    Update the given current Q-value estimate with a new target value using the incremental Monte Carlo update formula. This function applies the concept of temporal difference learning, specifically for updating action-value (Q-value) estimates in reinforcement learning.
-
     The formula for updating the Q-value is as follows:
     Q_new = Q_current + alpha * (target - Q_current)
 
     Where:
     - Q_current is the current estimate of the Q-value for a given state-action pair.
     - target is the observed return (or gain) from following the policy from the current state-action onward.
-    - alpha is the learning rate, a parameter that determines the extent to which the newly acquired information overrides the old information. A value of 0 makes the agent not learn anything, while a value of 1 would make the agent consider only the most recent information.
-
-    The update rule is a way to move the current Q-value estimate closer to the target value, with the learning rate controlling the size of the update step. This method is called incremental because it updates the estimates based on individual experiences or steps, rather than waiting for the completion of an entire episode.
+    - alpha is the learning rate, a parameter that determines the extent to which the newly acquired information 
+    overrides the old information. A value of 0 makes the agent not learn anything, while a value of 1 would 
+    make the agent consider only the most recent information.
 
     Args:
         current (float): The existing estimate of the Q-value for a certain state-action pair.
         target (float): The observed return or gain for taking an action in a given state and following the current policy thereafter.
-        alpha (float): The learning rate, a value between 0 and 1 that controls how much the new information affects the current Q-value estimate.
+        alpha (float): The learning rate, a value between 0 and 1 that controls how much the new information affects the current 
+        Q-value estimate.
 
     Returns:
         float: The updated Q-value estimate for the state-action pair.
 
-    Note:
-    - If either the current Q-value or the target value is `None`, the function returns the non-None value, assuming a default initialization in such cases. If both are `None`, the function returns `None`, indicating an error or unhandled case.
     """
     if current is not None and target is not None:
         return current + alpha * (target - current)
@@ -716,7 +714,6 @@ def update_Q(q_dict: QDict, experience: Experience, alpha=0.1):
     experience and updates the corresponding Q-value in the Q-dictionary using the incremental
     Monte Carlo update rule.
 
-    The function operates in several steps:
     1. Convert the list of experiences into a gains dictionary that maps each state to the
     gains associated with HIT and HOLD actions.
     2. For each state in the gains dictionary, calculate the average gain for HIT and HOLD actions.
@@ -743,13 +740,6 @@ def update_Q(q_dict: QDict, experience: Experience, alpha=0.1):
     Returns:
         QDict: The updated Q-dictionary with revised Q-value estimates based on the provided
             experiences.
-
-    Note:
-        - This function assumes that gains for actions not taken in a given state are represented
-        by an empty list in the gains dictionary, and it handles such cases by not updating
-        the Q-value for those actions.
-        - If the experience does not contain any instances of a state-action pair, the corresponding
-        Q-value remains unchanged.
     """
     gains_dict = create_gains_dict(experience)
 
@@ -1002,4 +992,4 @@ def main(
 
 # Execute the main function
 if __name__ == "__main__":
-    main(debug=False, pretrain=True, epochs=100000, epochs_pretrain=50000)
+    main(debug=True, pretrain=True, epochs=100000, epochs_pretrain=50000)
